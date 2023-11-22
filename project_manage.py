@@ -3,15 +3,12 @@
 # import database module
 from database import *
 import random
+import csv
 
 # define a funcion called initializing
 
 
 def initializing():
-
-
-
-
 
 # here are things to do in this function:
     # create an object to read an input csv file, persons.csv
@@ -39,8 +36,6 @@ def initializing():
     login = []
     for i in range(len(person_table.table)):
         login.append({})
-
-
 
 
 
@@ -82,7 +77,6 @@ def initializing():
 def login():
      my_DB = initializing()
      search_login = my_DB.search("login")
-     print(search_login)
      username = str(input("What is your username: "))
      password = str(input("What is your password: "))
      for i in range(len(search_login.table)):
@@ -92,9 +86,21 @@ def login():
             return None
 
 
+def exit(table):
+
+
+    pass
 
 
 
+# here are things to do in this function:
+# write out all the tables that have been modified to the corresponding csv files
+# By now, you know how to read in a csv file and transform it into a list of dictionaries. For this project, you also need to know how to do the reverse, i.e., writing out to a csv file given a list of dictionaries. See the link below for a tutorial on how to do this:
+
+# https://www.pythonforbeginners.com/basics/list-of-dictionaries-to-csv-in-python
+
+
+# make calls to the initializing and login functions defined above
 
 
 # here are things to do in this function:
