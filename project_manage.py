@@ -77,6 +77,7 @@ def initializing():
 def login():
      my_DB = initializing()
      search_login = my_DB.search("login")
+     print(search_login)
      username = str(input("What is your username: "))
      password = str(input("What is your password: "))
      for i in range(len(search_login.table)):
@@ -86,10 +87,24 @@ def login():
             return None
 
 
-def exit(table):
+def exit(table_name):
+
+    my_data = initializing()
+    search_table = my_data.search(table_name)
+    my_file = open(table_name+".csv","w")
+    writer = csv.writer(my_file)
+    x = search_table.table[0].keys()
+    writer.writerow(x)
+    for dict in search_table.table:
+        writer.writerow(dict.values())
+    my_file.close()
+    myFile = open(table_name+".csv","r")
+    print(myFile.read())
+    myFile.close()
 
 
-    pass
+
+
 
 
 
@@ -110,10 +125,8 @@ def exit(table):
 
 # make calls to the initializing and login functions defined above
 
-initializing()
-val = login()
-print(val)
 
+exit("login")
 # END part 1
 
 # CONTINUE to part 2 (to be done for the next due date)
