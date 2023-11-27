@@ -26,8 +26,7 @@ there are two faculty types:
             1.can see request to be a supervisor
             2.send response denying to serve as an advisor
             3.see details of all this project
-            4. Evaluate project
-            5. Approve the project from student
+            4. Evaluate the project
     second type: advising faculty:
         Action:
             1.See request to be a supervisor
