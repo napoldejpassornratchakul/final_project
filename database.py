@@ -5,10 +5,10 @@ import copy
 
 
 class ReadCsv:
-    def __init__(self, file = "persons.csv"):
+    def __init__(self, file_name):
         self.location = os.path.realpath(
         os.path.join(os.getcwd(), os.path.dirname(__file__)))
-        self.file = file
+        self.file = file_name
         self.list = []
 
     def read(self):
@@ -39,6 +39,16 @@ class Table:
     def __init__(self, table_name, table):
         self.table_name = table_name
         self.table = table
+
+    def insert_row(self,dict={}):
+        self.table.append(dict)
+
+    def update_row(self, primary_attribute, primary_attribute_value, update_attribute, update_value):
+        for i in self.table:
+            if i[primary_attribute] == primary_attribute_value:
+                i[update_attribute] = update_value
+
+
 
     def join(self, other_table, common_key):
         joined_table = Table(self.table_name + '_joins_' + other_table.table_name, [])
