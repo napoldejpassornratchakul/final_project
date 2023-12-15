@@ -342,28 +342,90 @@ class Faculty:
         self.advisor_pending_table = data.search("Advisor_pending_request")
         self.Class_advisor = Advisor()
 
-    def normal_or_advisor(self):
-        normal_or_advisor = str(input("Do you want to be normal faculty or advisor: "))
-        if normal_or_advisor == "normal faculty":
-            self.login_table.update_row("ID", self.ID, "role", "faculty")
+    def see_request(self):
+        print(self.advisor_pending_table)
 
-        elif normal_or_advisor == "advisor":
+    def response(self):
+        advisor_filter = self.advisor_pending_table.filter(lambda x: x["to_be_advisor"] == self.ID).filter(lambda x: x["Response"] == "pending")
+        print(advisor_filter)
+        which_project_advisor = str(input("Which project you gonna sent response: "))
+        temp_list = []
+        for i in advisor_filter.table:
+            temp_list.append(i["Project_ID"])
+        while which_project_advisor not in temp_list:
+            print(f"Wrong Project_ID")
+            which_project_advisor = str(input("Which project you gonna sent response: "))
+        responses = str(input(f"accept/denied:from({self.ID}) "))
+        if responses == "accept":
+            self.advisor_pending_table.update_row("Project_ID", which_project_advisor, "Response", responses)
             self.login_table.update_row("ID",self.ID,"role","advisor")
-            self.Class_advisor.sent_responses()
-        exit("login")
+            project_table = self.project_table.filter(lambda x: x["Project_ID"] == which_project_advisor)
+            project_table.update_row("Project_ID",which_project_advisor,"Advisor",self.ID)
+            exit("login")
+            exit("Project_table")
+
+        elif responses == "deny":
+            self.advisor_pending_table.update_row("Project_ID", which_project_advisor, "Response", responses)
+            self.login_table.update_row("ID", self.ID, "role", "faculty")
+            exit("login")
+        exit("Advisor_pending_request")
+
+
+
+    # def normal_or_advisor(self):
+    #     normal_or_advisor = str(input("Do you want to be normal faculty or advisor: "))
+    #     if normal_or_advisor == "normal faculty":
+    #         self.login_table.update_row("ID", self.ID, "role", "faculty")
+    #
+    #     elif normal_or_advisor == "advisor":
+    #         self.login_table.update_row("ID",self.ID,"role","advisor")
+    #         self.Class_advisor.sent_responses()
+    #     exit("login")
 
 class Advisor:
     def __init__(self):
         self.ID = val[0]
         self.advisor_pending_table = data.search("Advisor_pending_request")
         self.login_table = data.search("login")
+        self.Project_table = data.search("Project_table")
 
-    def sent_responses(self):
-            print(self.advisor_pending_table.filter(lambda x: x["to_be_advisor"] == self.ID))
-            which_project_advisor = str(input("Which project you gonna sent response: "))
-            responses = str(input("accept/denied: "))
-            self.advisor_pending_table.update_row("Project_ID",which_project_advisor,"Response",responses)
-            exit("Advisor_pending_request")
+    def sent_approve(self):
+        sent_approve = str(input(f"Do you approve "))
+
+
+
+
+
+    # def sent_responses(self):
+    #         advisor_filter = self.advisor_pending_table.filter(lambda x: x["to_be_advisor"] == self.ID).filter(lambda x: x["Response"] == "pending")
+    #         print(advisor_filter)
+    #         which_project_advisor = str(input("Which project you gonna sent response: "))
+    #         temp_list = []
+    #         for i in advisor_filter.table:
+    #             temp_list.append(i["Project_ID"])
+    #         while which_project_advisor not in temp_list:
+    #             print(f"Wrong Project_ID")
+    #             which_project_advisor = str(input("Which project you gonna sent response: "))
+    #         responses = str(input(f"accept/denied:from({self.ID}) "))
+    #         self.advisor_pending_table.update_row("Project_ID",which_project_advisor,"Response",responses)
+    #         exit("Advisor_pending_request")
+
+
+# class Normal_fac:
+#     def __init__(self):
+#         self.ID = val[0]
+#         self.project_table = data.search("Project_table")
+#
+#     def see_all_project(self):
+#         print(self.project_table)
+#
+#     def see_request_advisor(self):
+#
+
+# class Normal_faculty:
+#     def __init__(self):
+#         self.ID = val[0]
+#         self.
 
 # class normal_faculty:
 
@@ -397,13 +459,12 @@ class Advisor:
 
 
 
-
 data = initializing()
 val = login()
 print(val)#from login table
 
 f1 = Faculty()
-f1.normal_or_advisor()
+f1.response()
 
 
 
