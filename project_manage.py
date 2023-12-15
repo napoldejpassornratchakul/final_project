@@ -40,7 +40,7 @@ def initializing():
     advisor_pending_data = ReadCsv("Advisor_pending_request.csv")
 
     # create a 'persons' table
-    person_table = Table("person",person_data.read())
+    person_table = Table("persons",person_data.read())
     project_table = Table("Project_table",project_data.read())
     login_table = Table("login", login_data.read())
     member_pending_table = Table("Member_pending_request",member_pending_data.read())
@@ -187,8 +187,8 @@ def exit(table_name):
 
 
 class Student:
-    def __init__(self,person_id):
-        self.ID = str(person_id)
+    def __init__(self):
+        self.ID = val[0]
         self.member_info = data.search("Member_pending_request")
         self.project_id = ""
         self.login_info = data.search("login")
@@ -271,6 +271,8 @@ class Lead:
         self.deadline = ""
         self.advisor_pending = data.search("Advisor_pending_request")
         self.login_table = data.search("login")
+        self.project_table = data.search("Project_table")
+        self.ID = val[0]
 
 
 
@@ -278,15 +280,9 @@ class Lead:
         project_info = data.search("Project_table")
         your_ID = str(input("What is your ID: "))
         title = str(input("Title project: "))
-        self.deadline = str(input("Deadline: DD/MM/YYYY"))
-        dict = {}
-        dict["Project_ID"] = self.project_id
-        dict["Title"] = title
-        dict["Leader"] = your_ID
-        dict["Member1"] = None
-        dict["Member2"] = None
-        dict["Advisor"] = None
-        dict["Status"] = None
+
+        dict = {"Project_ID" : self.project_id, "Title" : title, "Leader": your_ID, "Member1":None, "Member2": None, "Advisor": None,
+                "Status":None,"Evaluator":None}
         project_info.insert_row(dict)
         exit("Project_table")
 
@@ -297,7 +293,7 @@ class Lead:
         login_info_student = login_info.filter(lambda x: x["role"] == "student")
         print(login_info_student)
         self.who_received = str(input("who student do you want to sent: "))
-        dict = {"Project_ID": self.project_id, "to_be_member": self.who_received, "Responses": "pending", "Responses_date": "1111"}
+        dict = {"Project_ID": self.project_id, "to_be_member": self.who_received, "Responses": "pending", "Responses_date": "1111" }
         member_pending.insert_row(dict)
         exit("Member_pending_request")
 
@@ -316,6 +312,13 @@ class Lead:
         self.advisor_pending.insert_row(dict)
         exit("Advisor_pending_request")
 
+    def update_status(self):
+        progress = str(input("How is your progressing of project: "))
+        self.project_table.update_row("Project_ID", self.project_id, "Status", progress)
+        exit("Project_table")
+
+
+
 
 
 
@@ -326,11 +329,16 @@ class Member:
     def __init__(self,ID):
         self.ID = ID
         self.project_table =  data.search("Project_table")
+        self.Class_lead = Lead()
+        self.project_id = Lead().project_id
 
     def see_project_table(self):
         print(self.project_table)
 
-
+    def update_status(self):
+        progress = str(input("How is your progressing of project: "))
+        self.project_table.update_row("Project_ID", self.project_id, "Status", progress)
+        exit("Project_table")
 
 
 class Faculty:
@@ -343,7 +351,11 @@ class Faculty:
         self.Class_advisor = Advisor()
 
     def see_request(self):
-        print(self.advisor_pending_table)
+        print(self.advisor_pending_table.filter(lambda x: x["to_be_advisor"] == self.ID))
+        
+    def see_project(self):
+        print(self.project_table)
+
 
     def response(self):
         advisor_filter = self.advisor_pending_table.filter(lambda x: x["to_be_advisor"] == self.ID).filter(lambda x: x["Response"] == "pending")
@@ -357,7 +369,7 @@ class Faculty:
             which_project_advisor = str(input("Which project you gonna sent response: "))
         responses = str(input(f"accept/denied:from({self.ID}) "))
         if responses == "accept":
-            self.advisor_pending_table.update_row("Project_ID", which_project_advisor, "Response", responses)
+            self.advisor_pending_table.update_row("Project_ID", which_project_advisor, "Response", "Accepted")
             self.login_table.update_row("ID",self.ID,"role","advisor")
             project_table = self.project_table.filter(lambda x: x["Project_ID"] == which_project_advisor)
             project_table.update_row("Project_ID",which_project_advisor,"Advisor",self.ID)
@@ -365,10 +377,28 @@ class Faculty:
             exit("Project_table")
 
         elif responses == "deny":
-            self.advisor_pending_table.update_row("Project_ID", which_project_advisor, "Response", responses)
+            self.advisor_pending_table.update_row("Project_ID", which_project_advisor, "Response", "Denied")
             self.login_table.update_row("ID", self.ID, "role", "faculty")
             exit("login")
         exit("Advisor_pending_request")
+
+    def eval_project(self):
+        print(self.project_table.filter(lambda x: x["Status"] == "").filter(lambda x: x["Evaluator"] == self.ID))
+        choose_project = str(input("Which project you gonna give response: "))
+        pass_or_reject = str(input("give Pass or reject: "))
+        if pass_or_reject == "pass":
+            self.project_table.update_row("Project_ID", choose_project,"Status",pass_or_reject)
+            exit("Project_table")
+            self.login_table.update_row("ID",self.ID,"role","Faculty")
+            exit("login")
+        elif pass_or_reject == "reject":
+            reason = str(input(f"reason and feedback. why you give them rejected: "))
+            dict = {"Comment" : {reason}}
+            project_filter_table = self.project_table.filter(lambda x: x["Status"] == "reject").filter(lambda x: x["Project_ID"] == choose_project)
+            project_filter_table.insert_row(dict)
+            exit("Project_table")
+
+
 
 
 
@@ -387,14 +417,266 @@ class Advisor:
         self.ID = val[0]
         self.advisor_pending_table = data.search("Advisor_pending_request")
         self.login_table = data.search("login")
-        self.Project_table = data.search("Project_table")
+        self.project_table = data.search("Project_table")
 
     def sent_approve(self):
-        sent_approve = str(input(f"Do you approve "))
+        sent_approve = str(input(f"Approve this project or not: "))
+        if sent_approve == "Approve":
+            self.project_table.update_row("Project_ID",self.ID,"Status",sent_approve)
+
+        elif sent_approve == "Reject":
+            self.project_table.update_row("Project_ID",self.ID,"Status",sent_approve)
+
+    def see(self):
+        project_table = self.project_table.filter(lambda x: x["Advisor"] == self.ID)
+        print(project_table)
 
 
 
 
+class Admin:
+    def __init__(self):
+        self.project_table = data.search("Project_table")
+        self.login_table = data.search("login")
+        self.advisor_pending_table = data.search("Advisor_pending_request")
+        self.person_table = data.search("persons")
+        self.member_pending_table = data.search("Member_pending_request")
+        self.input_table = None
+        self.project_id = None
+
+    def change_and_update(self):
+        print(f"1.persons\n"
+              f"2.login\n"
+              f"3.Advisor_pending_request\n"
+              f"4.Project_table\n"
+              f"5.Member_pending_request")
+
+        what_table = str(input("what table you gonna change/update(write table_name not number): "))
+        self.input_table = data.search(what_table)
+        print(self.input_table)
+        if what_table == "login" or what_table == "persons":
+            give_me_id = str(input("give me Person ID that you gonna change value: "))
+        elif what_table == "Project_table" or what_table == "Advisor_pending_request" or what_table == "Member_pending_request":
+            give_me_project_id = str(input("give me Project ID that you gonna change value: "))
+        can_change = self.input_table.table[0].keys()
+        print(f"which one you gonna change")
+        list_can_change = list(can_change)
+        print(list_can_change)
+        select_number = int(input("choose by number: "))
+        if what_table == "persons" or what_table == "login" or what_table == "Advisor_pending_request":
+            if select_number == 1:
+                original_value = str(input("Which value you gonna change/update to: "))
+                changed_value = str(input("what value you gonna change from original: "))
+                self.input_table.update_row(list_can_change[0],original_value,list_can_change[0],changed_value)
+                if what_table == "persons":
+                    self.login_table.update_row(list_can_change[0],original_value,list_can_change[0],changed_value)
+                    exit("login")
+                    for i in self.project_table.table:
+                        if i["Leader"] == original_value:
+                            self.project_id = i["Project_ID"]
+                            self.project_table.update_row("Project_ID", self.project_id,"Leader",changed_value)
+                            exit("Project_table")
+                        elif i["Member1"] == original_value:
+                            self.project_id = i["Project_ID"]
+                            self.project_table.update_row("Project_ID", self.project_id, "Member1",changed_value)
+                            exit("Project_table")
+                        elif i["Member2"] == original_value:
+                            self.project_id = i["Project_ID"]
+                            self.project_table.update_row("Project_ID",self.project_id,"Member2",changed_value)
+                            exit("Project_table")
+                    for j in self.advisor_pending_table.table:
+                        if j["to_be_advisor"] == original_value:
+                            self.project_id = j["Project_ID"]
+                            self.advisor_pending_table.update_row("Project_ID",self.project_id,"to_be_advisor",changed_value)
+                            exit("Advisor_pending_request")
+                elif what_table == "login":
+                    self.person_table.update_row(list_can_change[0],original_value,list_can_change[0],changed_value)
+                    for i in self.project_table.table:
+                        if i["Leader"] == original_value:
+                            self.project_id = i["Project_ID"]
+                            self.project_table.update_row("Project_ID", self.project_id, "Leader", changed_value)
+                            exit("Project_table")
+                        elif i["Member1"] == original_value:
+                            self.project_id = i["Project_ID"]
+                            self.project_table.update_row("Project_ID", self.project_id, "Member1", changed_value)
+                            exit("Project_table")
+                        elif i["Member2"] == original_value:
+                            self.project_id = i["Project_ID"]
+                            self.project_table.update_row("Project_ID", self.project_id, "Member2", changed_value)
+                            exit("Project_table")
+                    exit("persons")
+                elif what_table == "Advisor_pending_request":
+                    for i in self.project_table.table:
+                        if i["Project_ID"] == original_value:
+                            self.project_table.update_row(list_can_change[0],original_value,list_can_change[0],changed_value)
+                            exit("Project_table")
+                    for j in self.member_pending_table.table:
+                        if j["Project_ID"] == original_value:
+                            self.member_pending_table.update_row(list_can_change[0], original_value, list_can_change[0],changed_value)
+                            exit("Member_pending_request")
+                exit(what_table)
+            elif select_number == 2:
+                original_value = str(input("Which value you gonna change/update to: "))
+                changed_value = str(input("what value you gonna change from original: "))
+                if what_table == "persons" or what_table == "login":
+                    self.input_table.update_row(list_can_change[0],give_me_id,list_can_change[1],changed_value)
+                    exit(what_table)
+                elif what_table == "Advisor_pending_request":
+                    self.input_table.update_row(list_can_change[0], give_me_project_id, list_can_change[1], changed_value)
+                    exit(what_table)
+
+            elif select_number == 3:
+                original_value = str(input("Which value you gonna change/update to: "))
+                changed_value = str(input("what value you gonna change from original: "))
+                if what_table == "persons" or what_table == "login":
+                    self.input_table.update_row(list_can_change[0], give_me_id, list_can_change[2], changed_value)
+                    exit(what_table)
+                elif what_table == "Advisor_pending_request":
+                    self.input_table.update_row(list_can_change[0], give_me_project_id, list_can_change[2], changed_value)
+                    exit(what_table)
+
+            elif select_number == 4:
+                original_value = str(input("Which value you gonna change/update to: "))
+                changed_value = str(input("what value you gonna change from original: "))
+                self.input_table.update_row(list_can_change[0], give_me_id, list_can_change[3], changed_value)
+                if what_table == "persons":
+                    self.login_table.update_row(list_can_change[0],give_me_id,"role",changed_value)
+                    exit("login")
+                elif what_table == "login":
+                    self.person_table.update_row(list_can_change[0],give_me_id,"type",changed_value)
+                    exit("persons")
+                exit(what_table)
+
+        elif what_table == "Project_table":
+            if select_number == 1:
+                original_value = str(input("Which value you gonna change/update to: "))
+                changed_value = str(input("what value you gonna change from original: "))
+                self.input_table.update_row(list_can_change[0], original_value, list_can_change[0], changed_value)
+                for i in self.advisor_pending_table.table:
+                    if i["Project_ID"] == original_value:
+                        self.advisor_pending_table.update_row(list_can_change[0], original_value, list_can_change[0],changed_value)
+                        exit("Advisor_pending_request")
+                for j in self.member_pending_table.table:
+                    if i["Project_ID"] == original_value:
+                        self.member_pending_table.update_row(list_can_change[0],original_value,list_can_change[0],changed_value)
+                        exit("Member_pending_request")
+                exit(what_table)
+            elif select_number == 2:
+                original_value = str(input("Which value you gonna change/update to: "))
+                changed_value = str(input("what value you gonna change from original: "))
+                self.input_table.update_row(list_can_change[1], original_value, list_can_change[1], changed_value)
+                exit(what_table)
+            elif select_number == 3:
+                original_value = str(input("Which value you gonna change/update to: "))
+                changed_value = str(input("what value you gonna change from original: "))
+                self.input_table.update_row(list_can_change[2], original_value, list_can_change[2], changed_value)
+                for i in self.login_table.table:
+                    if i["ID"] == original_value:
+                        self.login_table.update_row("ID",original_value,"ID",changed_value)
+                for j in self.person_table.table:
+                    if j["ID"] == original_value:
+                        self.person_table.update_row("ID",original_value,"ID",changed_value)
+                exit("login")
+                exit("persons")
+                exit(what_table)
+            elif select_number == 4:
+                original_value = str(input("Which value you gonna change/update to: "))
+                changed_value = str(input("what value you gonna change from original: "))
+                self.input_table.update_row(list_can_change[3], original_value, list_can_change[3], changed_value)
+                for i in self.login_table.table:
+                    if i["ID"] == original_value:
+                        self.login_table.update_row("ID",original_value,"ID",changed_value)
+                for j in self.person_table.table:
+                    if j["ID"] == original_value:
+                        self.person_table.update_row("ID",original_value,"ID",changed_value)
+                exit("login")
+                exit("persons")
+                exit(what_table)
+
+            elif select_number == 5:
+                original_value = str(input("Which value you gonna change/update to: "))
+                changed_value = str(input("what value you gonna change from original: "))
+                self.input_table.update_row(list_can_change[4], original_value, list_can_change[4], changed_value)
+                for i in self.login_table.table:
+                    if i["ID"] == original_value:
+                        self.login_table.update_row("ID",original_value,"ID",changed_value)
+                for j in self.person_table.table:
+                    if j["ID"] == original_value:
+                        self.person_table.update_row("ID",original_value,"ID",changed_value)
+                exit("login")
+                exit("persons")
+                exit(what_table)
+            elif select_number == 6:
+                original_value = str(input("Which value you gonna change/update to: "))
+                changed_value = str(input("what value you gonna change from original: "))
+                self.input_table.update_row(list_can_change[5], original_value, list_can_change[5], changed_value)
+                for i in self.login_table.table:
+                    if i["ID"] == original_value:
+                        self.login_table.update_row("ID",original_value,"ID",changed_value)
+                for j in self.person_table.table:
+                    if j["ID"] == original_value:
+                        self.person_table.update_row("ID",original_value,"ID",changed_value)
+                exit("login")
+                exit("persons")
+                exit(what_table)
+            elif select_number == 7:
+                original_value = str(input("Which value you gonna change/update to: "))
+                changed_value = str(input("what value you gonna change from original: "))
+                self.input_table.update_row(list_can_change[6], original_value, list_can_change[6], changed_value)
+                exit(what_table)
+        elif what_table == "Member_pending_request":
+            if select_number == 1:
+                original_value = str(input("Which value you gonna change/update to: "))
+                changed_value = str(input("what value you gonna change from original: "))
+                self.input_table.update_row(list_can_change[0], original_value, list_can_change[0], changed_value)
+                for i in self.advisor_pending_table.table:
+                    if i["Project_ID"] == original_value:
+                        self.advisor_pending_table.update_row(list_can_change[0], original_value, list_can_change[0],changed_value)
+                        exit("Advisor_pending_request")
+                for j in self.project_table.table:
+                    if j["Project_ID"] == original_value:
+                        self.project_table.update_row(list_can_change[0], original_value, list_can_change[0],changed_value)
+                        exit("Project_table")
+                exit(what_table)
+            elif select_number == 2:
+                original_value = str(input("Which value you gonna change/update to: "))
+                changed_value = str(input("what value you gonna change from original: "))
+                self.input_table.update_row(list_can_change[0], give_me_project_id, list_can_change[1], changed_value)
+                exit(what_table)
+            elif select_number == 3:
+                original_value = str(input("Which value you gonna change/update to: "))
+                changed_value = str(input("what value you gonna change from original: "))
+                self.input_table.update_row(list_can_change[0], give_me_project_id, list_can_change[2], changed_value)
+                exit(what_table)
+
+            elif select_number == 4:
+                original_value = str(input("Which value you gonna change/update to: "))
+                changed_value = str(input("what value you gonna change from original: "))
+                self.input_table.update_row(list_can_change[0], give_me_project_id, list_can_change[2], changed_value)
+                exit(what_table)
+
+    def choose_who_gonna_prove(self):
+        print("Available faculty")
+        print(self.project_table)
+        select_project_id = str(input(f"which group you gonna choose evaluator for them: "))
+        print(self.login_table.filter(lambda x: x["role"] == "faculty"))
+        choose_evaluator = str(input(f"choose evaluator for student project: "))
+        self.project_table.update_row("Project_ID",select_project_id,"Evaluator",choose_evaluator)
+        self.login_table.update_row("ID",choose_evaluator,"role","Evaluator")
+        self.project_table.update_row("Project_ID", select_project_id,"Status",choose_evaluator)
+        exit("Project_table")
+        exit("login")
+
+    def see(self):
+        what_see = str(input(f"what do you want to see: "))
+        print(data.search(what_see))
+
+
+
+
+            # for i in self.table:
+            #     if i[primary_attribute] == primary_attribute_value:
+            #         i[update_attribute] = update_value
 
     # def sent_responses(self):
     #         advisor_filter = self.advisor_pending_table.filter(lambda x: x["to_be_advisor"] == self.ID).filter(lambda x: x["Response"] == "pending")
@@ -461,11 +743,6 @@ class Advisor:
 
 data = initializing()
 val = login()
-print(val)#from login table
-
-f1 = Faculty()
-f1.response()
-
 
 
 
@@ -475,9 +752,59 @@ f1.response()
 # l1 = Lead(9898118)
 # l1.sent_invitation()
 
-# if val[1] == 'admin':
-#     # do admin related activities
-#     pass
+if val[1] == 'admin':
+    a1 = Admin()
+    what_do = str(input(f"What do you want to do see/edit/select eva: "))
+    if what_do == "see":
+        a1.see()
+    elif what_do == "edit":
+        a1.change_and_update()
+
+    elif what_do == "select_eva":
+        a1.choose_who_gonna_prove()
+
+elif val[1] == "advisor":
+    ad = Advisor()
+    what_do = str(input(f"what do you want to do: "))
+    if what_do == "see":
+        ad.see()
+    elif what_do == "sent_approve":
+        ad.sent_approve()
+elif val[1] == "lead":
+    l1 = Lead()
+    what_do = str(input(f"what do you want to do: "))
+    if what_do == "create_project":
+        l1.create_project()
+    elif what_do == "sent invitation to member":
+        l1.sent_invitation()
+    elif what_do == "see detail":
+        l1.see_detail()
+    elif what_do == "sent invitation to advisor":
+        l1.sent_invitation()
+    elif what_do == "update_status":
+        l1.update_status()
+elif val[1] == "Member":
+    m1 = Member()
+    what_do = str(input(f"What do you want to do: "))
+    if what_do == "see project":
+        m1.see_project_table()
+    elif what_do == "update_status":
+        m1.update_status()
+elif val[1] == "faculty":
+    f1 = Faculty()
+    what_do = str(input(f"What do you want to do: "))
+    if what_do == "see who invite to be advisor":
+        f1.see_request()
+    elif what_do == "see project":
+        f1.see_project()
+    elif what_do == "sent_responses":
+        f1.response()
+    elif what_do == "eval_project":
+        f1.eval_project()
+
+
+    # do admin related activities
+
 #
 # elif val[1] = 'advisor'
 #     # do advisor related activities
