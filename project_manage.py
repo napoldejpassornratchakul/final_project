@@ -10,24 +10,7 @@ import random
 import sys
 import copy
 
-# define a funcion called initializing
-# logins = []
-# with open(os.path.join(__location__, 'login.csv')) as f:
-#     rows = csv.DictReader(f)
-#     for r in rows:
-#         logins.append(dict(r))
-#
-# person = []
-# with open(os.path.join(__location__, 'persons.csv')) as f:
-#     rows = csv.DictReader(f)
-#     for r in rows:
-#         person.append(dict(r))
-#
-# member_pending =  []
-# with open(os.path.join(__location__, 'Member_pending_request.csv')) as f:
-#     rows = csv.DictReader(f)
-#     for r in rows:
-#         member_pending.append(dict(r))
+
 
 def initializing():
 
@@ -133,57 +116,10 @@ def exit(table_name):
     writer.writerow(x)
     for dict in search_table.table:
         writer.writerow(dict.values())
-    # my_file.close()
-    # myFile = open(table_name+".csv","r")
-    # print((myFile.read()))
-    # myFile.close()
     with open(table_name + ".csv", "r") as myFile:
         print(myFile.read())
 
 
-
-
-# here are things to do in this function:
-# write out all the tables that have been modified to the corresponding csv files
-# By now, you know how to read in a csv file and transform it into a list of dictionaries. For this project, you also need to know how to do the reverse, i.e., writing out to a csv file given a list of dictionaries. See the link below for a tutorial on how to do this:
-
-# https://www.pythonforbeginners.com/basics/list-of-dictionaries-to-csv-in-python
-
-
-# make calls to the initializing and login functions defined above
-
-
-# here are things to do in this function:
-   # add code that performs a login task
-        # ask a user for a username and password
-        # returns [person_id, role] if valid, otherwise returning None
-
-# make calls to the initializing and login functions defined above
-
-
-
-
-# END part 1
-
-# CONTINUE to part 2 (to be done for the next due date)
-
-# based on the return value for login, activate the code that performs activities according to the role defined for that person_id
-
-
-
-
-
-#
-#
-# class Login:
-#     def __init__(self,person_id):
-#         self.person_id = person_id
-#
-#     def return_type(self):
-#         for i in my_person_table.table:
-#             if i["ID"] == str(self.person_id):
-#                 return i["type"]
-#
 
 
 class Student:
@@ -193,61 +129,65 @@ class Student:
         self.project_id = ""
         self.login_info = data.search("login")
         self.type = val[1]
-        self.id = val[0]
+
         self.project_table = data.search("Project_table")
         self.lead = copy.copy(Lead())
 
-
-    # def see_invitation(self):
-    #     login_info = data.search("login")
-    #     if self.ID in login_info:
-    #
 
     def lead_or_member(self):
         if self.type == "student":
             for i in self.login_info.table:
                 if i["ID"] == self.ID: #need indicator
-                    create_project_or_not = str(input("Do you want to create project?: "))
+                    create_project_or_not = str(input("Do you want to create project?(Yes/No): "))
                     if create_project_or_not == "Yes":
                         self.login_info.update_row("ID",self.ID,"role","lead")
-
+                        print("You are now leader")
                         self.lead.create_project()
-                        num_of_invite = int(input("How many do you want to sent: "))
-
-                        for i in range(num_of_invite):
+                        sent_invitation_to_student = str(input(f"Do you want to sent to student(Yes/No): "))
+                        if sent_invitation_to_student == "Yes":
                             self.lead.sent_invitation()
-                        self.lead.see_detail()
-                        self.lead.sent_invitation_to_advisor()
+                        sent_invitation_to_advisor = str(input(f"Do you want to sent to advisor(Yes/No): "))
+                        if sent_invitation_to_advisor == "Yes":
+                            self.lead.sent_invitation_to_advisor()
 
                     elif create_project_or_not == "No":
                         responses = ""
                         while responses != "accept":
-                            self.see_invitation()
-                            which_project = str(input("which project do you want to be member: "))
+                            see_invite = self.see_invitation()
+                            if len(see_invite) == 0:
+                                break
+                            print(see_invite)
+                            which_project = str(input("which project do you want to be member(give me project ID): "))
                             responses = str(input("accept/deny: "))
                             self.response(responses,which_project)
                             if responses == "accept":
                                 self.login_info.update_row("ID", self.ID, "role", "Member")
                                 filter_project_id  = self.project_table.filter(lambda x: x["Project_ID"] == which_project)
+                                num = ""
                                 for i in filter_project_id.table:
-                                    if i["Member1"] == None:
+                                    if i["Member1"] == "":
                                         num = "Member1"
-                                    elif i["Member1"] != None:
+                                    elif i["Member1"] != "":
                                         num = "Member2"
                                     else:
                                         print(f"group is fulled")
                                         sys.exit()
-                                self.project_table.update_row("Project_ID",which_project,num,self.ID)
+                                self.project_table.update_row("Project_ID",which_project, num ,self.ID)
+                                print("Status updated")
                                 exit("Project_table")
+                            elif responses == "deny" and len(see_invite) > 0:
+                                continue
+                            else:
+                                break
 
-                    else:
-                        continue
+                else:
+                    continue
         return exit("login")
 
 
     def see_invitation(self):
-        member_pending_filter = self.member_info.filter(lambda x: x["to_be_member"] == self.ID)
-        print(member_pending_filter)
+        member_pending_filter = self.member_info.filter(lambda x: x["to_be_member"] == self.ID).filter(lambda x: x["Responses"] == "pending")
+        return member_pending_filter.table
 
     def response(self,responses,project_id):
         self.project_id = project_id
@@ -276,13 +216,16 @@ class Lead:
 
 
 
+
     def create_project(self):
         project_info = data.search("Project_table")
-        your_ID = str(input("What is your ID: "))
+
         title = str(input("Title project: "))
 
-        dict = {"Project_ID" : self.project_id, "Title" : title, "Leader": your_ID, "Member1":None, "Member2": None, "Advisor": None,
+        dict = {"Project_ID" : self.project_id, "Title" : title, "Leader": self.ID, "Member1":None, "Member2": None, "Advisor": None,
                 "Status":None,"Evaluator":None}
+        give_deadline = str(input(f"DD/MM/YYYY: "))
+        self.deadline = give_deadline
         project_info.insert_row(dict)
         exit("Project_table")
 
@@ -298,10 +241,10 @@ class Lead:
         exit("Member_pending_request")
 
     def see_detail(self):
-        member_pending_table = self.member_pending.filter(lambda x: x["to_be_member"] == self.who_received)
+        project_detail = self.project_table.filter(lambda x: x["Leader"] == self.ID)
         print(f"Project detail")
         print("-------------")
-        print(member_pending_table)
+        print(project_detail)
         print(f"Deadline: {self.deadline}")
 
     def sent_invitation_to_advisor(self):
@@ -313,8 +256,11 @@ class Lead:
         exit("Advisor_pending_request")
 
     def update_status(self):
+        filter_project_table = self.project_table.filter(lambda x: x["Leader"])
+        print(filter_project_table)
+        which_project = str(input(f"Which project that you want to update status(give me project ID): "))
         progress = str(input("How is your progressing of project: "))
-        self.project_table.update_row("Project_ID", self.project_id, "Status", progress)
+        self.project_table.update_row("Project_ID", which_project, "Status", progress)
         exit("Project_table")
 
 
@@ -370,6 +316,7 @@ class Faculty:
         responses = str(input(f"accept/denied:from({self.ID}) "))
         if responses == "accept":
             self.advisor_pending_table.update_row("Project_ID", which_project_advisor, "Response", "Accepted")
+            print(f"You are now Advisor")
             self.login_table.update_row("ID",self.ID,"role","advisor")
             project_table = self.project_table.filter(lambda x: x["Project_ID"] == which_project_advisor)
             project_table.update_row("Project_ID",which_project_advisor,"Advisor",self.ID)
@@ -400,17 +347,6 @@ class Faculty:
 
 
 
-
-
-    # def normal_or_advisor(self):
-    #     normal_or_advisor = str(input("Do you want to be normal faculty or advisor: "))
-    #     if normal_or_advisor == "normal faculty":
-    #         self.login_table.update_row("ID", self.ID, "role", "faculty")
-    #
-    #     elif normal_or_advisor == "advisor":
-    #         self.login_table.update_row("ID",self.ID,"role","advisor")
-    #         self.Class_advisor.sent_responses()
-    #     exit("login")
 
 class Advisor:
     def __init__(self):
@@ -668,74 +604,13 @@ class Admin:
         exit("login")
 
     def see(self):
-        what_see = str(input(f"what do you want to see: "))
+        print(f"1.Project_table\n"
+              f"2.login\n"
+              f"3.Advisor_pending_request\n"
+              f"4.Member_pending_request\n"
+              f"5.person")
+        what_see = str(input(f"what do you want to see table: "))
         print(data.search(what_see))
-
-
-
-
-            # for i in self.table:
-            #     if i[primary_attribute] == primary_attribute_value:
-            #         i[update_attribute] = update_value
-
-    # def sent_responses(self):
-    #         advisor_filter = self.advisor_pending_table.filter(lambda x: x["to_be_advisor"] == self.ID).filter(lambda x: x["Response"] == "pending")
-    #         print(advisor_filter)
-    #         which_project_advisor = str(input("Which project you gonna sent response: "))
-    #         temp_list = []
-    #         for i in advisor_filter.table:
-    #             temp_list.append(i["Project_ID"])
-    #         while which_project_advisor not in temp_list:
-    #             print(f"Wrong Project_ID")
-    #             which_project_advisor = str(input("Which project you gonna sent response: "))
-    #         responses = str(input(f"accept/denied:from({self.ID}) "))
-    #         self.advisor_pending_table.update_row("Project_ID",which_project_advisor,"Response",responses)
-    #         exit("Advisor_pending_request")
-
-
-# class Normal_fac:
-#     def __init__(self):
-#         self.ID = val[0]
-#         self.project_table = data.search("Project_table")
-#
-#     def see_all_project(self):
-#         print(self.project_table)
-#
-#     def see_request_advisor(self):
-#
-
-# class Normal_faculty:
-#     def __init__(self):
-#         self.ID = val[0]
-#         self.
-
-# class normal_faculty:
-
-
-
-
-
-
-
-
-    # def sent_response(self):
-    #
-    #
-    #
-    #
-    #
-
-
-
-
-
-
-
-    # def invitation(self):
-    #     for i in updated_Status:
-    #         if i["Status"] == "Leader":
-    #
-
 
 
 
@@ -743,65 +618,99 @@ class Admin:
 
 data = initializing()
 val = login()
+if val[1] == "student":
+    s1 = Student()
+    while True:
+        print(f"1.lead or member\n"
+              f"2.Exit")
+        what_do = str(input(f"What do you want to do: "))
+        if what_do == "2":
+            break
+        elif what_do == "1":
+            s1.lead_or_member()
 
-
-
-# s1 = Student(5687866)
-# s1.lead_or_member()
-
-# l1 = Lead(9898118)
-# l1.sent_invitation()
 
 if val[1] == 'admin':
     a1 = Admin()
-    what_do = str(input(f"What do you want to do see/edit/select eva: "))
-    if what_do == "see":
+    print(f"1.see\n"
+          f"2.edit\n"
+          f"3.select evaluator\n"
+          f"4.Exit")
+    what_do = str(input(f"What do you want to do: "))
+    if what_do == "1":
         a1.see()
-    elif what_do == "edit":
+    elif what_do == "2":
         a1.change_and_update()
-
-    elif what_do == "select_eva":
+    elif what_do == "3":
         a1.choose_who_gonna_prove()
 
 elif val[1] == "advisor":
     ad = Advisor()
-    what_do = str(input(f"what do you want to do: "))
-    if what_do == "see":
-        ad.see()
-    elif what_do == "sent_approve":
-        ad.sent_approve()
+    while True:
+        print("1.see\n"
+              "2.sent approve\n"
+              "3.Exit")
+        what_do = str(input(f"what do you want to do: "))
+        if what_do == "3":
+            break
+        elif what_do == "1":
+            ad.see()
+        elif what_do == "2":
+            ad.sent_approve()
 elif val[1] == "lead":
     l1 = Lead()
-    what_do = str(input(f"what do you want to do: "))
-    if what_do == "create_project":
-        l1.create_project()
-    elif what_do == "sent invitation to member":
-        l1.sent_invitation()
-    elif what_do == "see detail":
-        l1.see_detail()
-    elif what_do == "sent invitation to advisor":
-        l1.sent_invitation()
-    elif what_do == "update_status":
-        l1.update_status()
+    while True:
+        print(f"1.Create project\n"
+              f"2.Sent invitation to student who want to \n"
+              f"3.See project detail\n"
+              f"4.sent invitation to advisor\n"
+              f"5.update prpject status\n"
+              f"6.Exit.")
+        what_do = str(input(f"what do you want to do(Choose by number): "))
+        if what_do == "6":
+            break
+        elif what_do == "1":
+            l1.create_project()
+        elif what_do == "2":
+            l1.sent_invitation()
+        elif what_do == "3":
+            l1.see_detail()
+        elif what_do == "4":
+            l1.sent_invitation()
+        elif what_do == "5":
+            l1.update_status()
 elif val[1] == "Member":
     m1 = Member()
-    what_do = str(input(f"What do you want to do: "))
-    if what_do == "see project":
-        m1.see_project_table()
-    elif what_do == "update_status":
-        m1.update_status()
+    while True:
+        print(f"1.See project\n"
+              f"2.Update status of project\n"
+              f"3.Exit")
+        what_do = str(input(f"What do you want to do: "))
+        if what_do == "3":
+            break
+        elif what_do == "1":
+            m1.see_project_table()
+        elif what_do == "2":
+            m1.update_status()
 elif val[1] == "faculty":
     f1 = Faculty()
-    what_do = str(input(f"What do you want to do: "))
-    if what_do == "see who invite to be advisor":
-        f1.see_request()
-    elif what_do == "see project":
-        f1.see_project()
-    elif what_do == "sent_responses":
-        f1.response()
-    elif what_do == "eval_project":
-        f1.eval_project()
-
+    while True:
+        print(f"1.See who invite to be advisor\n"
+              f"2.See project detail\n"
+              f"3.Sent_responses\n"
+              f"4.Eval_Project\n"
+              f"5.Exit")
+        what_do = str(input(f"What do you want to do: "))
+        if what_do == "5":
+            break
+        elif what_do == "1":
+            f1.see_request()
+        elif what_do == "2":
+            f1.see_project()
+        elif what_do == "3":
+            f1.response()
+        elif what_do == "4":
+            f1.eval_project()
 
     # do admin related activities
 
