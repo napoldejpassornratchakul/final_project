@@ -76,5 +76,4 @@ On my project:
 - if NOT IN GROUP
 - allow to create a project
 
-
-                
+- I added evaluator column

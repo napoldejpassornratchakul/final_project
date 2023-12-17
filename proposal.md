@@ -13,6 +13,10 @@ The advising faculty evaluation:
     4.can choose approved or rejected, if proposal of student is not completed yet
 
 the Approve step of advisor should be the other advisor of the project to approve, because avoiding the bias decision.
+
+
+my Eval step is:
+admin must be choose normal faculty to approve other project and it will update status on the project table status.
     
     
     

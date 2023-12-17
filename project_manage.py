@@ -43,50 +43,9 @@ def initializing():
     # add the 'login' table into the database
     return my_DB
 
-    # the 'login' table has the following keys (attributes):
-        # person_id
-        # username
-        # password
-        # role
 
 
 
-
-    # create a 'login' table
-    # login = []
-    # for i in range(len(person_table.table)):
-    #     login.append({})
-    #
-    #
-    #
-    #
-    #
-    # # a person_id is the same as that in the 'persons' table
-    #     login[i]["person_id"] = person_table.table[i]["ID"]
-    #
-    # # let a username be a person's first name followed by a dot and the first letter of that person's last name
-    #     login[i]["username"] = person_table.table[i]["fist"] + "." + person_table.table[i]["last"][0]
-    #
-    # let a password be a random four digits string
-    #     digit1, digit2, digit3, digit4 = random.sample([str(x) for x in range(10)], 4)
-    #     login[i]["password"] = digit1 + digit2 + digit3 + digit4
-
-    # # let the initial role of all the students be Member
-    #     if person_table.table[i]["type"] == "student":
-    #         login[i]["type"] = "Member"
-    #
-    # # let the initial role of all the faculties be Faculty
-    #     elif person_table.table[i]["type"] == "faculties":
-    #         login[i]["type"] = "Faculty"
-    #
-    # #let add the admin role
-    #     elif person_table.table[i]["type"] == "admin":
-    #         login[i]["type"] = "admin"
-
-
-
-
-# define a funcion called login
 
 def login():
      main_list = []
@@ -95,7 +54,6 @@ def login():
      password = str(input("What is your password: "))
      for i in range(len(search_login.table)):
          if search_login.table[i]["username"] == username and search_login.table[i]["password"] == password:
-             # return f'[{search_login.table[i]["person_id"]} , {search_login.table[i]["type"]}]' #should return list
             main_list.append(search_login.table[i]["ID"])
             main_list.append(search_login.table[i]["role"])
             return main_list
@@ -179,7 +137,6 @@ class Student:
                                 continue
                             else:
                                 break
-
                 else:
                     continue
         return exit("login")
@@ -245,7 +202,8 @@ class Lead:
         print(f"Project detail")
         print("-------------")
         print(project_detail)
-        print(f"Deadline: {self.deadline}")
+        print("-------------")
+
 
     def sent_invitation_to_advisor(self):
         filter_table_faculty = self.login_table.filter(lambda x: x["role"] == "faculty")
@@ -356,12 +314,16 @@ class Advisor:
         self.project_table = data.search("Project_table")
 
     def sent_approve(self):
+        self.see()
+
         sent_approve = str(input(f"Approve this project or not: "))
         if sent_approve == "Approve":
-            self.project_table.update_row("Project_ID",self.ID,"Status",sent_approve)
+            self.project_table.update_row("Advisor",self.ID,"Status",sent_approve)
 
         elif sent_approve == "Reject":
-            self.project_table.update_row("Project_ID",self.ID,"Status",sent_approve)
+            self.project_table.update_row("Advisor",self.ID,"Status",sent_approve)
+
+        exit("Project_table")
 
     def see(self):
         project_table = self.project_table.filter(lambda x: x["Advisor"] == self.ID)
@@ -628,6 +590,7 @@ if val[1] == "student":
             break
         elif what_do == "1":
             s1.lead_or_member()
+            print()
 
 
 if val[1] == 'admin':
@@ -639,10 +602,13 @@ if val[1] == 'admin':
     what_do = str(input(f"What do you want to do: "))
     if what_do == "1":
         a1.see()
+        print()
     elif what_do == "2":
         a1.change_and_update()
+        print()
     elif what_do == "3":
         a1.choose_who_gonna_prove()
+        print()
 
 elif val[1] == "advisor":
     ad = Advisor()
@@ -655,8 +621,10 @@ elif val[1] == "advisor":
             break
         elif what_do == "1":
             ad.see()
+            print()
         elif what_do == "2":
             ad.sent_approve()
+            print()
 elif val[1] == "lead":
     l1 = Lead()
     while True:
@@ -671,14 +639,19 @@ elif val[1] == "lead":
             break
         elif what_do == "1":
             l1.create_project()
+            print()
         elif what_do == "2":
             l1.sent_invitation()
+            print()
         elif what_do == "3":
             l1.see_detail()
+            print()
         elif what_do == "4":
             l1.sent_invitation()
+            print()
         elif what_do == "5":
             l1.update_status()
+            print()
 elif val[1] == "Member":
     m1 = Member()
     while True:
@@ -690,8 +663,11 @@ elif val[1] == "Member":
             break
         elif what_do == "1":
             m1.see_project_table()
+            print()
         elif what_do == "2":
             m1.update_status()
+            print()
+
 elif val[1] == "faculty":
     f1 = Faculty()
     while True:
@@ -705,22 +681,14 @@ elif val[1] == "faculty":
             break
         elif what_do == "1":
             f1.see_request()
+            print()
         elif what_do == "2":
             f1.see_project()
+            print()
         elif what_do == "3":
             f1.response()
+            print()
         elif what_do == "4":
             f1.eval_project()
+            print()
 
-    # do admin related activities
-
-#
-# elif val[1] = 'advisor'
-#     # do advisor related activities
-#     pass
-# elif val[1] = 'lead':
-#     do lead related activities
-# elif val[1] = 'member':
-#     do member related activities
-# elif val[1] = 'faculty':
-# do faculty related activities
