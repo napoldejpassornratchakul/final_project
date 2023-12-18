@@ -81,6 +81,8 @@ since I tested all, I have not encountered with the bugs yet. but I'm not sure w
 because, it's quite complicated code but after I tested all there is not bug, it can change value correctly
 for example. If I change the ID of the user who be lead on the project table. both of them will change too:
 
+and sometime its will added person.csv from somewhere I tried to find the bug already but I couldn't find it
+
 my missing:
 I think my missing point is sometime you need to login twice to get the role that you want: because, early there are have
 only 3 role, so sometime you need to login twice
