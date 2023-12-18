@@ -213,14 +213,15 @@ class Lead:
 
 
 class Member:
-    def __init__(self, ID):
-        self.ID = ID
+    def __init__(self):
+        self.ID = val[0]
         self.project_table = data.search("Project_table")
         self.Class_lead = Lead()
         self.project_id = Lead().project_id
 
     def see_project_table(self):
-        print(self.project_table)
+        filter_project_table = self.project_table.filter(lambda x: x["Member"] == self.ID or x["Member2"] == self.ID)
+        print(filter_project_table)
 
     def update_status(self):
         progress = str(input("How is your progressing of project: "))
@@ -271,7 +272,10 @@ class Faculty:
         exit("Advisor_pending_request")
 
     def eval_project(self):
-        print(self.project_table.filter(lambda x: x["Status"] == "").filter(lambda x: x["Evaluator"] == self.ID))
+        filter_project_table = self.project_table.filter(lambda x: x["Status"] == "").filter(lambda x: x["Evaluator"] == self.ID)
+        if len(filter_project_table.table) == 0:
+            print(f"There is not project for eval")
+            return False
         choose_project = str(input("Which project you gonna give response: "))
         pass_or_reject = str(input("give Pass or reject: "))
         if pass_or_reject == "pass":
