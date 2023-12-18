@@ -138,10 +138,13 @@ class Student:
     def see_invitation(self):
         member_pending_filter = self.member_info.filter(lambda x: x["to_be_member"] == self.ID).filter(
             lambda x: x["Responses"] == "pending")
+        if member_pending_filter.table == 0:
+            print(f"There is not invitation")
         return member_pending_filter.table
 
     def response(self, responses, project_id):
         self.project_id = project_id
+        print(self.member_info.filter(lambda x: x["to_be_member"] == self.ID).filter(lambda x : x["Responses"] == "pending"))
         if responses == "accept":
             self.member_info.update_row("Project_ID", self.project_id, "Responses", "Accepted")
             exit("Member_pending_request")
@@ -584,7 +587,7 @@ if val[1] == "student":
             s1.lead_or_member()
             print()
         elif what_do == "2":
-            s1.see_invitation()
+            print(s1.see_invitation())
         elif what_do == "3":
             which_project = str(input("Which project that you want to sent responses: "))
             what_is_your_response = str(input("What is your response: "))
@@ -627,7 +630,7 @@ elif val[1] == "lead":
     l1 = Lead()
     while True:
         print(f"1.Create project\n"
-              f"2.Sent invitation to student who want to \n"
+              f"2.Sent invitation to student that you want him/her to be member\n"
               f"3.See project detail\n"
               f"4.sent invitation to advisor\n"
               f"5.update prpject status\n"
