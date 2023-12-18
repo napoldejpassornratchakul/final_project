@@ -13,7 +13,25 @@ on login function:
 on the exit function part:
   - I have adapted the function by get the parameter called table name, However, it can run correctly 
 
-
+| Role                |                                           Action                                           |                     Method | class            | Completion % |
+|:--------------------|:------------------------------------------------------------------------------------------:|---------------------------:|:-----------------|:-------------|         
+| Lead                |                         update and append project to project table                         |             create_project | Student and Lead | 100%         |
+| Lead                |                 update and append sent invitation to member_pending_table                  |            sent_invitation | Lead             | 100%         |
+| Lead                |                                    print project detail                                    |                 see detail | Lead             | 100%         |
+ | Lead                |                                 sent invitation to advisor                                 | sent_invitation to advisor | Lead             | 100%         |
+| Lead                |                               update_status of project_table                               |              update_status | Lead             | 100%         |
+| student             | ask user whether "Do you want to create project"(if yes will be lead. if no will be member |             lead_or_member | Student          | 100%         |
+| Member              |                                    print project detail                                    |          see project_table | Member           | 100%         |
+| Member              |                         update status column on the project table                          |              update_status | Member           | 100%         |
+| Advisor             |         sent_approve to the project status of the project table will be "Approve"          |               sent_approve | Advisor          | 100%         |
+| Advisor             |                                    print project detail                                    |                        see | Advisor          | 100%         |
+| Faculty             |                           see who sent the request to be advisor                           |                see_request | Faculty          | 100%         |
+| Faculty             |                                print all the project table                                 |                see_project | Faculty          | 100%         |
+| Faculty and Advisor | sent the response accept or deny to be advisor|              sent_response | Faculty          | 100%         |
+| Faculty             |sent the pass or reject to the project, Project table updated|               eval_project | Faculty          | 100%         |
+| Admin               |user can you who/what he/she want to change or update|              change_update | Admin            | 100%         |
+| Admin               |choose available faculty to be the person who gonna eval_project|            who_gonna_prove | Admin            | 100%         |
+|Admin|see the table by ask user which table you wanna see|                        see | Admin            | 100%         |
 on the class Student:
  -there are 3 functions
 first function called lead_or_member:
@@ -29,6 +47,7 @@ if user answered is "No" it will print member_pending_request of that user autom
 it will ask user which project ID that you want to sent response.
 if response of user is accept. it will updated status of Project_table on the member1 or member2 column and
 member_pending_request table will also update, and login table will update role of user too.
+
 
 
 on the class Lead:
