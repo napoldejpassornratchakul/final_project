@@ -69,5 +69,22 @@ because the advisor who own their project should not be eval by him/herself. IT 
 3.see function will ask user which table that he/her want to see
 
 
+How to run my project:
+first it will run function login to get the ID and role of user:
+by asking username and password:
+
+if role of that person match to any if condition it will ask the user that what do you want to do:
+by answer by number
+
+my Bugs:
+since I tested all, I have not encountered with the bugs yet. but I'm not sure with the admin class
+because, it's quite complicated code but after I tested all there is not bug, it can change value correctly
+for example. If I change the ID of the user who be lead on the project table. both of them will change too:
+
+my missing:
+I think my missing point is sometime you need to login twice to get the role that you want: because, early there are have
+only 3 role, so sometime you need to login twice
+
+
 
 
